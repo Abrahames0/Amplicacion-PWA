@@ -1,8 +1,8 @@
 {
-    "name": "PWA Flashlight",
-    "short_name": "Flashlight",
-    "description": "Una aplicación PWA para controlar el flash del dispositivo.",
-    "icons": [
+  "name": "PWA SegurityPWA",
+  "short_name": "SegurityPWA",
+  "description": "Una aplicación PWA para agregar notas del dia.",
+  "icons": [
     {
       "src": "windows11/SmallTile.scale-100.png",
       "sizes": "71x71"
@@ -451,8 +451,8 @@
       "src": "ios/1024.png",
       "sizes": "1024x1024"
     }
-    ],
-    "start_url": "../index.html",
+  ],
+  "start_url": "../index.html",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#000000"

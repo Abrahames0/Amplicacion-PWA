@@ -3,11 +3,24 @@ document.addEventListener("DOMContentLoaded", async () => {
   let db; // Base de datos IndexedDB
   const tablaBody = document.getElementById("tabla-body");
 
+  async function checkBiometricSupport() {
+    if ('credentials' in navigator && 'get' in navigator.credentials) {
+      console.log("La autenticación biométrica es compatible.");
+      return true;
+    } else {
+      console.error("La autenticación biométrica no es compatible en este navegador.");
+      return false;
+    }
+  }
+
   // Verificar si el navegador soporta la autenticación biométrica
   async function autenticarBiometricamente() {
-    if ('credentials' in navigator) {
+    if ('credentials' in navigator && 'get' in navigator.credentials) {
       try {
-        const credential = await navigator.credentials.get({ password: false, biometric: true });
+        const credential = await navigator.credentials.get({ 
+          password: false, 
+          biometric: true 
+        });
         if (credential) {
           console.log('Autenticación biométrica exitosa');
           return true;
@@ -20,10 +33,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         return false;
       }
     } else {
-      console.error('La autenticación biométrica no es soportada en este dispositivo');
+      console.error('La autenticación biométrica no es soportada en este dispositivo o navegador');
       return false;
     }
-  }
+  }    
 
   // Inicializar IndexedDB
   function initIndexedDB() {
