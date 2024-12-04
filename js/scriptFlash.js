@@ -50,18 +50,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         const db = event.target.result;
         const transaction = db.transaction(["frases"], "readonly");
         const store = transaction.objectStore("frases");
-  
+
         const allRecords = store.getAll(); // Obtener todos los registros
-  
+
         allRecords.onsuccess = function() {
           resolve(allRecords.result); // Devuelve los datos
         };
-  
+
         allRecords.onerror = function(event) {
           reject("Error al cargar los datos: " + event.target.error);
         };
       };
-  
+
       request.onerror = function(event) {
         reject("Error al abrir la base de datos: " + event.target.error);
       };
@@ -109,6 +109,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     };
   }
 
+  // Actualizar la tabla con las frases
   function actualizarTabla(frases) {
     tablaBody.innerHTML = ""; // Limpia la tabla
     frases.forEach((item, index) => {
@@ -147,7 +148,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const autentico = await autenticarBiometricamente();
     if (autentico) {
       await initIndexedDB();
-      cargarYActualizarTabla();
+      cargarYActualizarTabla(); // Cargar y actualizar la tabla después de la autenticación biométrica
     } else {
       console.log("Autenticación fallida. No se puede acceder a los datos.");
     }
