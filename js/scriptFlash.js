@@ -114,15 +114,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     tablaBody.innerHTML = ""; // Limpia la tabla
     frases.forEach((item, index) => {
       const fila = document.createElement("tr");
-      fila.innerHTML = `
-          <th scope="row">${item.id}</th>
-          <td>${item.frase}</td>
-          <td>${item.codigoMorse}</td>
-          <td>
-            <button class="btn btn-warning btn-sm" onclick="mostrarFormularioActualizar(${item.id}, '${item.frase}', '${item.codigoMorse}')">Actualizar</button>
-            <button class="btn btn-danger btn-sm" onclick="eliminarFrase(${item.id})">Eliminar</button>
-          </td>
-        `;
+      fila.innerHTML = ` 
+        <th scope="row">${item.id}</th>
+        <td>${item.frase}</td>
+        <td>${item.codigoMorse}</td>
+        <td>
+          <button class="btn btn-warning btn-sm" onclick="mostrarFormularioActualizar(${item.id}, '${item.frase}', '${item.codigoMorse}')">Actualizar</button>
+          <button class="btn btn-danger btn-sm" onclick="eliminarFrase(${item.id})">Eliminar</button>
+        </td>
+      `;
       tablaBody.appendChild(fila);
     });
   }
@@ -154,5 +154,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  main();
+  // Evento para el botón de autenticación biométrica
+  document.getElementById("autenticarBtn").addEventListener("click", async () => {
+    const autentico = await autenticarBiometricamente();
+    if (autentico) {
+      console.log("Autenticación exitosa");
+      await initIndexedDB();
+      cargarYActualizarTabla(); // Cargar y actualizar la tabla después de la autenticación biométrica
+    } else {
+      console.log("Autenticación fallida");
+    }
+  });
 });
