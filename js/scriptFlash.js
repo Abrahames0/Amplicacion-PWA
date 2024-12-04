@@ -1,47 +1,11 @@
 document.addEventListener("DOMContentLoaded", async () => {
-  // Variables globales
   let db; // Base de datos IndexedDB
   const tablaBody = document.getElementById("tabla-body");
-
-  async function checkBiometricSupport() {
-    if ('credentials' in navigator && 'get' in navigator.credentials) {
-      console.log("La autenticación biométrica es compatible.");
-      return true;
-    } else {
-      console.error("La autenticación biométrica no es compatible en este navegador.");
-      return false;
-    }
-  }
-
-  // Verificar si el navegador soporta la autenticación biométrica
-  async function autenticarBiometricamente() {
-    if ('credentials' in navigator && 'get' in navigator.credentials) {
-      try {
-        const credential = await navigator.credentials.get({ 
-          password: false, 
-          biometric: true 
-        });
-        if (credential) {
-          console.log('Autenticación biométrica exitosa');
-          return true;
-        } else {
-          console.error('Autenticación fallida');
-          return false;
-        }
-      } catch (error) {
-        console.error('Error en la autenticación biométrica:', error);
-        return false;
-      }
-    } else {
-      console.error('La autenticación biométrica no es soportada en este dispositivo o navegador');
-      return false;
-    }
-  }    
 
   // Inicializar IndexedDB
   function initIndexedDB() {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open("FrasesDB", 1);
+      const request = indexedDB.open("FrasesDB", 2); // Cambiar la versión a 2
 
       request.onsuccess = (event) => {
         db = event.target.result;
@@ -52,13 +16,25 @@ document.addEventListener("DOMContentLoaded", async () => {
         console.error("Error al inicializar IndexedDB:", event.target.error);
         reject(event.target.error);
       };
+
+      // Manejo de la actualización del esquema de la base de datos
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        console.log("Actualizando base de datos...");
+        if (!db.objectStoreNames.contains("frases")) {
+          const store = db.createObjectStore("frases", { keyPath: "id", autoIncrement: true });
+          store.createIndex("fraseIndex", "frase", { unique: false });
+          store.createIndex("imagenIndex", "imagen", { unique: false });
+          console.log("Store 'frases' creado correctamente.");
+        }
+      };
     });
   }
 
   // Cargar frases desde IndexedDB
   function cargarDesdeIndexedDB() {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open("FrasesDB", 1);
+      const request = indexedDB.open("FrasesDB", 2); // Cambiar la versión a 2
       request.onsuccess = function(event) {
         const db = event.target.result;
         const transaction = db.transaction(["frases"], "readonly");
@@ -82,14 +58,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // Función para eliminar frase
-  function eliminarFrase(id) {
+  window.eliminarFrase = function(id) { // Se agrega a window para hacerlo global
     const transaction = db.transaction(["frases"], "readwrite");
     const store = transaction.objectStore("frases");
     store.delete(id);
 
     transaction.oncomplete = function() {
       console.log("Frase eliminada correctamente");
-      cargarYActualizarTabla();
+      cargarYActualizarTabla(); // Recargar la tabla después de eliminar
     };
 
     transaction.onerror = function(event) {
@@ -97,42 +73,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     };
   }
 
-  // Función para actualizar frase
-  function actualizarFrase(id, nuevaFrase, nuevoCodigoMorse) {
-    const transaction = db.transaction(["frases"], "readwrite");
-    const store = transaction.objectStore("frases");
-    const request = store.get(id);
-
-    request.onsuccess = function(event) {
-      const frase = event.target.result;
-      if (frase) {
-        frase.frase = nuevaFrase;
-        frase.codigoMorse = nuevoCodigoMorse;
-        store.put(frase);
-
-        transaction.oncomplete = function() {
-          console.log("Frase actualizada correctamente");
-          cargarYActualizarTabla();
-        };
-      }
-    };
-
-    request.onerror = function(event) {
-      console.error("Error al obtener la frase:", event.target.error);
-    };
-  }
-
-  // Actualizar la tabla con las frases
+  // Actualizar la tabla con las frases y sus imágenes
   function actualizarTabla(frases) {
     tablaBody.innerHTML = ""; // Limpia la tabla
-    frases.forEach((item, index) => {
+    frases.forEach((item) => {
       const fila = document.createElement("tr");
       fila.innerHTML = ` 
         <th scope="row">${item.id}</th>
         <td>${item.frase}</td>
-        <td>${item.codigoMorse}</td>
+        <td><img src="${item.foto}" alt="Foto" width="50" height="50" /></td>
         <td>
-          <button class="btn btn-warning btn-sm" onclick="mostrarFormularioActualizar(${item.id}, '${item.frase}', '${item.codigoMorse}')">Actualizar</button>
           <button class="btn btn-danger btn-sm" onclick="eliminarFrase(${item.id})">Eliminar</button>
         </td>
       `;
@@ -140,42 +90,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // Cargar y actualizar la tabla después de la autenticación
   async function cargarYActualizarTabla() {
     const frases = await cargarDesdeIndexedDB();
-    actualizarTabla(frases);
+    actualizarTabla(frases); // Actualizar la tabla con las frases cargadas
   }
 
-  // Mostrar el formulario para actualizar frase
-  function mostrarFormularioActualizar(id, frase, codigoMorse) {
-    const nuevaFrase = prompt("Actualiza la frase:", frase);
-    const nuevoCodigoMorse = prompt("Actualiza el código Morse:", codigoMorse);
-
-    if (nuevaFrase !== null && nuevoCodigoMorse !== null) {
-      actualizarFrase(id, nuevaFrase, nuevoCodigoMorse);
-    }
-  }
-
-  // Función principal para verificar la autenticación biométrica y cargar los datos
-  async function main() {
-    const autentico = await autenticarBiometricamente();
-    if (autentico) {
-      await initIndexedDB();
-      cargarYActualizarTabla(); // Cargar y actualizar la tabla después de la autenticación biométrica
-    } else {
-      console.log("Autenticación fallida. No se puede acceder a los datos.");
-    }
-  }
-
-  // Evento para el botón de autenticación biométrica
-  document.getElementById("autenticarBtn").addEventListener("click", async () => {
-    const autentico = await autenticarBiometricamente();
-    if (autentico) {
-      console.log("Autenticación exitosa");
-      await initIndexedDB();
-      cargarYActualizarTabla(); // Cargar y actualizar la tabla después de la autenticación biométrica
-    } else {
-      console.log("Autenticación fallida");
-    }
-  });
+  // Inicializamos la base de datos y cargamos las frases al iniciar
+  await initIndexedDB();
+  cargarYActualizarTabla();
 });

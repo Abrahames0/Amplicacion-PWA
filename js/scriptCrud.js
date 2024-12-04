@@ -1,193 +1,150 @@
-// Abrir la base de datos con una versión específica
-const request = indexedDB.open("FrasesDB", 1); // Si cambia el esquema, incrementa la versión
-
-// Crear el object store si es necesario
-request.onupgradeneeded = function(event) {
-  const db = event.target.result;
-  if (!db.objectStoreNames.contains("frases")) {
-    const store = db.createObjectStore("frases", { keyPath: "id", autoIncrement: true });
-    store.createIndex("frase", "frase", { unique: false });
-    store.createIndex("codigoMorse", "codigoMorse", { unique: false });
-  }
-};
-
-// Cuando la base de datos está lista
-request.onsuccess = function(event) {
-  const db = event.target.result;
-
-  // Aquí puedes realizar las transacciones o operaciones que desees
-  console.log("Base de datos abierta correctamente.");
-};
-
-// En caso de error
-request.onerror = function(event) {
-  console.error("Error al abrir la base de datos:", event.target.error);
-};
-
-// Función para guardar datos en la base de datos
-function guardarEnIndexedDB(frase, codigoMorse) {
-  const transaction = db.transaction(["frases"], "readwrite");
-  const store = transaction.objectStore("frases");
-  store.add({ frase, codigoMorse });
-
-  transaction.oncomplete = function() {
-    console.log("Frase guardada correctamente.");
-  };
-
-  transaction.onerror = function(event) {
-    console.error("Error al guardar la frase:", event.target.error);
-  };
-}
-
-
 document.addEventListener("DOMContentLoaded", async () => {
-    // Mapeo de caracteres a código Morse
-    const morseCodeMap = {
-      A: ".-", B: "-...", C: "-.-.", D: "-..", E: ".", F: "..-.",
-      G: "--.", H: "....", I: "..", J: ".---", K: "-.-", L: ".-..",
-      M: "--", N: "-.", O: "---", P: ".--.", Q: "--.-", R: ".-.",
-      S: "...", T: "-", U: "..-", V: "...-", W: ".--", X: "-..-",
-      Y: "-.--", Z: "--..", 1: ".----", 2: "..---", 3: "...--",
-      4: "....-", 5: ".....", 6: "-....", 7: "--...", 8: "---..",
-      9: "----.", 0: "-----", " ": "/"
-    };
-  
-    // Variables globales
-    let db; // Base de datos IndexedDB
-    const frases = []; // Array local para sincronizar con IndexedDB
-    const formulario = document.getElementById("formulario");
-    const fraseInput = document.getElementById("Frase");
-    const tablaBody = document.querySelector("table tbody");
-    const gifImagen = document.getElementById("gifImagen");
-  
-    // Inicializar IndexedDB
+  let db; // Base de datos IndexedDB
+  const formulario = document.getElementById("formulario");
+  const fraseInput = document.getElementById("Frase");
+  const tablaBody = document.querySelector("table tbody");
+  const gifImagen = document.getElementById("gifImagen");
+  const cameraButton = document.getElementById("cameraButton");
+  const photoPreview = document.getElementById("photoPreview");
+
+  let photoData = null; // Almacenar la imagen tomada
+
+  // Validar si IndexedDB está disponible
+  if (!window.indexedDB) {
+    alert("Tu navegador no soporta IndexedDB. Algunas funcionalidades pueden no estar disponibles.");
+    return;
+  }
+
   function initIndexedDB() {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open("FrasesDB", 1);
-
+      const request = indexedDB.open("FrasesDB", 2);
+  
       request.onupgradeneeded = (event) => {
         const db = event.target.result;
         if (!db.objectStoreNames.contains("frases")) {
           db.createObjectStore("frases", { keyPath: "id", autoIncrement: true });
         }
       };
-
+  
       request.onsuccess = (event) => {
         db = event.target.result;
         resolve();
       };
-
+  
       request.onerror = (event) => {
         console.error("Error al inicializar IndexedDB:", event.target.error);
         reject(event.target.error);
       };
     });
-  }
+  }  
 
-  
-    // Guardar frase en IndexedDB
-  function guardarEnIndexedDB(frase, codigoMorse) {
+  // Guardar frase e imagen en IndexedDB
+  function guardarEnIndexedDB(frase, foto) {
     return new Promise((resolve, reject) => {
       const transaction = db.transaction("frases", "readwrite");
       const store = transaction.objectStore("frases");
 
-      const data = { frase, codigoMorse };
+      const data = { frase, foto };
       const request = store.add(data);
 
       request.onsuccess = () => {
         resolve(data);
-        gifImagen.style.display = "block"; // Mostrar la imagen al guardar correctamente
+        gifImagen.style.display = "block"; // Mostrar el gif de guardado
         setTimeout(() => {
-          gifImagen.style.display = "none"; // Ocultar la imagen después de 3 segundos
-        }, 6000); // 3 segundos
+          gifImagen.style.display = "none"; // Ocultar el gif después de 3 segundos
+        }, 3000);
       };
+
       request.onerror = (event) => reject(event.target.error);
     });
   }
-  
-    // Eliminar frase de IndexedDB
-    function eliminarDeIndexedDB(id) {
-      return new Promise((resolve, reject) => {
-        const transaction = db.transaction("frases", "readwrite");
-        const store = transaction.objectStore("frases");
-  
-        const request = store.delete(id);
-        request.onsuccess = () => resolve();
-        request.onerror = (event) => reject(event.target.error);
+
+  // Función para capturar una foto
+  function capturarFoto() {
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then((stream) => {
+        const videoElement = document.createElement("video");
+        videoElement.srcObject = stream;
+        videoElement.play();
+
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        document.body.appendChild(videoElement); // Agregar video a la página
+
+        // Hacer una foto después de 3 segundos
+        setTimeout(() => {
+          canvas.width = videoElement.videoWidth;
+          canvas.height = videoElement.videoHeight;
+          context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+          const foto = canvas.toDataURL("image/png"); // Convertir la imagen a base64
+          photoData = foto; // Almacenar la foto
+
+          // Mostrar la foto en la página
+          photoPreview.src = foto;
+          photoPreview.style.display = "block";
+          videoElement.srcObject.getTracks().forEach(track => track.stop()); // Detener el stream
+          videoElement.remove(); // Remover el video
+        }, 3000);
+      })
+      .catch((error) => {
+        console.error("Error al acceder a la cámara:", error);
       });
+  }
+
+  // Manejar el evento de envío del formulario
+  formulario.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const frase = fraseInput.value.trim();
+    if (!frase) {
+      alert("Por favor, introduce una frase.");
+      return;
     }
-  
-    // Cargar frases desde IndexedDB
-    function cargarDesdeIndexedDB() {
-      return new Promise((resolve, reject) => {
-        const transaction = db.transaction("frases", "readonly");
-        const store = transaction.objectStore("frases");
-  
-        const request = store.getAll();
-        request.onsuccess = (event) => resolve(event.target.result);
-        request.onerror = (event) => reject(event.target.error);
-      });
+
+    if (!photoData) {
+      alert("Por favor, captura una foto.");
+      return;
     }
-  
-    async function sincronizarFrases() {
-      const datos = await cargarDesdeIndexedDB();
-      frases.splice(0, frases.length, ...datos);
+
+    // Guardar en IndexedDB y sincronizar
+    try {
+      const data = await guardarEnIndexedDB(frase, photoData);
       actualizarTabla();
+      fraseInput.value = "";
+      photoPreview.style.display = "none"; // Ocultar la imagen después de guardar
+    } catch (error) {
+      console.error("Error al guardar la frase:", error);
     }
-  
-    function actualizarTabla() {
-      tablaBody.innerHTML = "";
+  });
+
+  // Actualizar la tabla con las frases e imágenes
+  function actualizarTabla() {
+    tablaBody.innerHTML = "";
+    const transaction = db.transaction("frases", "readonly");
+    const store = transaction.objectStore("frases");
+    const request = store.getAll();
+
+    request.onsuccess = (event) => {
+      const frases = event.target.result;
       frases.forEach((item, index) => {
         const fila = document.createElement("tr");
         fila.innerHTML = `
           <th scope="row">${index + 1}</th>
-          <td>guardado</td>
-          <td>guardado</td>
+          <td>${item.frase}</td>
+          <td><img src="${item.foto}" alt="Foto" width="50" height="50" /></td>
         `;
         tablaBody.appendChild(fila);
       });
-  
-      tablaBody.querySelectorAll("button[data-id]").forEach((button) => {
-        button.addEventListener("click", async (event) => {
-          const id = Number(event.target.getAttribute("data-id"));
-          await eliminarDeIndexedDB(id);
-          frases.splice(frases.findIndex((item) => item.id === id), 1);
-          actualizarTabla();
-        });
-      });
-    }
-  
-    // Función para convertir texto a código Morse
-    function convertirAMorse(texto) {
-      return texto
-        .toUpperCase()
-        .split("")
-        .map((char) => morseCodeMap[char] || "?")
-        .join(" ");
-    }
-  
-    // Manejar el evento de envío del formulario
-    formulario.addEventListener("submit", async (event) => {
-      event.preventDefault();
-  
-      const frase = fraseInput.value.trim();
-      if (!frase) {
-        alert("Por favor, introduce una frase.");
-        return;
-      }
-  
-      const codigoMorse = convertirAMorse(frase);
-  
-      // Guardar en IndexedDB y sincronizar
-      const data = await guardarEnIndexedDB(frase, codigoMorse);
-      frases.push(data);
-      actualizarTabla();
-  
-      fraseInput.value = "";
-    });
-  
-    // Inicializar la aplicación
-    await initIndexedDB();
-    await sincronizarFrases();
-  });
-  
+    };
+
+    request.onerror = (event) => {
+      console.error("Error al obtener las frases de IndexedDB:", event.target.error);
+    };
+  }
+
+  // Inicializar la aplicación
+  await initIndexedDB();
+
+  // Capturar foto al hacer clic en el botón
+  cameraButton.addEventListener("click", capturarFoto);
+});
