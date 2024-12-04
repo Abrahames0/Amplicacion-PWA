@@ -1,0 +1,152 @@
+@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@200;300;400;500;600;700;800;900&display=swap");
+
+/* Reset global */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: #f3f4f6;
+  color: #333;
+}
+
+/* Estilos del header */
+.navegador {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1%;
+  background-color: #624cab;
+}
+
+.navegador__contenido {
+  display: flex;
+  justify-content: space-evenly;
+  width: 70%;
+}
+
+.navegador__contenido a {
+  text-decoration: none;
+  color: white;
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 10px 20px;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+}
+
+.navegador__contenido a:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.navegador__contenido .active {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Contenido principal */
+#contenido {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  margin-top: 3%;
+}
+
+.contenido__titulo {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.contenido__titulo h1 {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 3.5rem;
+  font-weight: 400;
+  color: #333;
+}
+
+.contenido__titulo h1 span {
+  color: #624cab;
+}
+
+.contenido__texto {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.contenido__notificaciones {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+#myform {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#myform input {
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: 60%;
+}
+
+.boton {
+  background-color: #624cab;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: 0.3s;
+  font-weight: 700;
+}
+
+.boton:hover {
+  background-color: #9d7bd7;
+  transform: scale(1.1);
+}
+
+/* Responsividad */
+@media (max-width: 950px) {
+  #contenido {
+    flex-direction: column;
+  }
+
+  .navegador__contenido a {
+    font-size: 1rem;
+  }
+
+  .navegador__vacio {
+    width: 0%;
+  }
+
+  .navegador__contenido {
+    width: 100%;
+    margin-right: 0%;
+  }
+
+  #myform input {
+    width: 80%;
+  }
+}
+
+@media (max-width: 500px) {
+  .navegador {
+    padding: 5%;
+  }
+
+  .navegador__contenido a {
+    font-size: 0.75rem;
+  }
+
+  #myform input {
+    width: 100%;
+  }
+}

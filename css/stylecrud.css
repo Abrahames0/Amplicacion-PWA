@@ -1,0 +1,123 @@
+@import url("https://fonts.googleapis.com/css2?family=Koh+Santepheap:wght@300;400;700&family=Nunito:wght@200;300;400;500;600;700;800;900&family=Raleway:wght@400;500;600;700&display=swap");
+
+/* Reset global */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: #f3f4f6;
+  color: #333;
+}
+
+/* Estilos del header */
+.navegador {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1%;
+  background: linear-gradient(135deg, #9d7bd7, #624cab);
+}
+
+.navegador__contenido {
+  display: flex;
+  justify-content: space-evenly;
+  width: 70%;
+}
+
+.navegador__contenido a {
+  text-decoration: none;
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 10px 20px;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+}
+
+.navegador__contenido a:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.navegador__contenido .active {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Estilos de la tabla y formulario */
+.contenido__table {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 3%;
+}
+
+#formulario {
+  width: 40%;
+  margin-bottom: 2%;
+}
+
+#formulario__input {
+  margin-bottom: 1.5rem;
+}
+
+#formulario__input label {
+  font-weight: 600;
+}
+
+#formulario__boton {
+  display: flex;
+  justify-content: center;
+}
+
+table {
+  width: 100%;
+  margin-top: 3%;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+table th {
+  background-color: #624cab;
+  color: rgb(156, 119, 188);
+}
+
+table td {
+  text-align: center;
+}
+
+table tbody tr:hover {
+  background-color: #8a8fd1;
+  transform: scale(1.02);
+  transition: all 0.3s ease;
+}
+
+/* Estilos responsivos */
+@media (max-width: 950px) {
+  .navegador__contenido a {
+    font-size: 0.9rem;
+  }
+
+  #formulario {
+    width: 80%;
+  }
+}
+
+@media (max-width: 500px) {
+  .navegador {
+    padding: 5%;
+  }
+
+  .navegador__contenido a {
+    font-size: 0.75rem;
+    margin: 5px 0;
+  }
+
+  #formulario {
+    width: 100%;
+  }
+}
